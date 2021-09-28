@@ -84,7 +84,7 @@
 # use_sa:   switch to deactivate sensitivity analysis
 
 [sa_opts_]
-    use_sa = false
+    use_sa = true
 
 # debug options ----------------------------------------------------------------------------------------------------
 # use_plot:                 plot results
@@ -104,4 +104,5 @@
 # car:                      name of car toml file to use for the simulation
 
 [car_opts_]
-    car = "FE_Berlin"
+    #car = "FE_Berlin"
+    car = "eLemons_bmw_e28"
