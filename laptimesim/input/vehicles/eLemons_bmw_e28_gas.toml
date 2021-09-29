@@ -1,0 +1,146 @@
+# This file is meant to describle the BMW e28 (528e) in a .toml format. 
+# The  original FE__Berlin.toml, was itself derived from the original TUM 
+# car file just formatted to work with a .toml file input type
+# https://toml.io/en/v1.0.0
+# in addition there are car properties and relationships that are developed into
+# many different car property combinations for the simulation
+
+# car property options -----------------------------------------
+# The values here are reperesentative of the car model defined in the following
+# references and are used in the race_car_model.py file:
+# https://docs.google.com/presentation/d/1Fe2ebMumncOxJ_XGSEA_o8PTu6qjORcLRfJFTbei6lo/edit#slide=id.p
+# https://docs.google.com/document/d/1X2Aovz6VcKqkIUcsu5Z-QPbyDjBc7IG8CdWpZJr58eI/edit#
+
+
+# INDEPENDENT VARIABLES
+# Independent Variables can either be a single float value or a 
+# list of 3 float values which represent a range of values to iterate over
+# format [min_value, max_value, number_of_steps]
+
+# battery_size:             battery size in kWh
+# battery_change_constant:  constant time penalty for changing battery in minutes
+# motor_max_torque:         maximum continuous motor torque in Nm
+# gross_vehicle_weight:     vehicle weight from factory in kg
+# weight_reduction:         weight reduced from removing unnecessary car components in kg
+# coefficient_of_drag:      coefficient of drag of car (unitless)
+
+# RELATIONSHIP VARIABLES
+# Relationship variables must be a single float value and represent
+# relationships between different car properties
+# battery_mass_pit_factor:          how long to pit per kg of battery (minutes/kg)
+# battery_energy_density:           energy density of battery kWh/kg
+# motor_constant:                   motor constant of motor Nm/sqrt(W)
+# motor_torque_density:             torque per kilogram of motor (Nm/kg)
+# max_vehicle_weight_ratio:         rules based maximum weight of vehicle based on gvw (unitless)
+# car_density:                      density of car (kg/m^3)
+# chassis_battery_mass_factor:      ratio of supporting chassis mass per battery mass (kg/kg)
+# chassis_motor_mass_factor:        ratio of supporting chassis mass per motor mass (kg/kg)
+# rolling_resistance_mass_factor:   ratio of rolling resistance increase per kg of total vehicle mass (1/kg)
+
+[car_properties_]
+    [car_properties_.independent_variables]
+        battery_size = 40  # kWh
+        battery_change_constant = 3  # minutes
+        motor_max_torque = 325  # Nm
+        gross_vehicle_weight =  1225.0 # kg
+        weight_reduction = 180  # kg
+        coefficient_of_drag = 0.38  # unitless
+    
+    [car_properties_.relationship_variables]
+        battery_energy_density = 0.5  # kWh/kg
+        battery_mass_pit_factor = 0.03  # 15 minutes for 500kg battery
+        battery_power_output_factor = 1000 # Watts output per kWh battery capacity
+        motor_constant = 0.07  # Nm/sqrt(W)
+        motor_torque_density = 5 # Nm/kg
+        max_vehicle_weight_ratio = 1.25  # determined by rules
+        car_density = 450 # kg/m^3
+        chassis_battery_mass_factor = 0.05 # kg chassis per kg battery
+        chassis_motor_mass_factor = 0.05 # kg chassis per kg motor
+        rolling_resistance_mass_factor = 0.00001 #0.01 rolling resistance for 1000 kg car
+    
+# vehicle parameters ----------------------------------------------------------------------------------------------------------------------
+# Initial vehicle parameters to set, the data structure is what the simulation came with
+# and was copied direcly from the FE_Berlin.ini file, and modified for the BMW e28
+# [VEH_PARS]
+
+# powertrain_type:              electric, hybrid, combustion
+
+# lf:                           [m] x distance front axle to center of gravity
+# lr:                           [m] x distance rear axle to center of gravity
+# h_cog:                        [m] height of center of gravity
+# sf:                           [m] track width front
+# sr:                           [m] track width rear
+# m:                            [kg] vehicle mass inlcuding driver excluding fuel (FE minimum 880kg)
+# f_roll:                       [-] rolling resistance coefficient
+# c_w_a:                        [m^2] c_w * A_car -> air resistance calculation
+# c_z_a_f:                      [m^2] c_z_f * A_frontwing
+# c_z_a_r:                      [m^2] c_z_r * A_rearwing
+# g:                            [m/s^2]
+# rho_air:                      [kg/m^3] air density
+# drs_factor:                   [-] part of reduction of air resistance by DRS
+
+# topology:                     [-] RWD or AWD or FWD
+# pow_e_motor:                  [W] total electric motor power (after efficiency losses)
+# eta_e_motor:                  [-] efficiency electric motor (drive)
+# eta_e_motor_re:               [-] efficiency electric motor (recuperation)
+# torque_e_motor_max:           [Nm] maximum torque of electric motor (after efficiency losses)
+
+# keep attention on the direction of the values, i.e. i_trans is from tire to engine!
+# i_trans:                      [-] gear ratio
+# n_shift:                      [1/min] shift rpm
+# e_i:                          [-] torsional mass factor
+# eta_g:                        [-] efficiency of gearbox/transmission
+
+# tire data should be normalized to mu = 1.0 (coefficient of friction of the track / tire test bench)
+# circ_ref:                     [m] loaded reference circumreference
+# fz_0:                         [N] nominal tire load
+# mux:                          [-] corresponds to the coefficient of friction at nominal tire load (fz == fz_0)
+# muy:                          [-] corresponds to the coefficient of friction at nominal tire load (fz == fz_0)
+# dmux_dfz:                     [-] reduction of force potential with rising tire load (fz > fz_0) -> negative value!
+# dmuy_dfz:                     [-] reduction of force potential with rising tire load (fz > fz_0) -> negative value!
+# tire_model_exp:               [-] exponent used in the tire model to adjust shape of friction "circle" -> [1.0, 2.0]
+
+[veh_pars_]
+    powertrain_type = "electric"
+    
+    [veh_pars_.general]
+        lf = 0.918  # weight distribution: 65/35 f/r https://www.mye28.com/viewtopic.php?t=154907
+        lr = 1.706  # wheelbase: 2625mm https://www.carinf.com/en/5990423541.html
+        h_cog = 0.5  # height of e30 CoG https://www.steerbythrottle.com/hccyong/cars/susp_analysis.htm
+        sf = 1.431 # https://www.carinf.com/en/5990423541.html
+        sr = 1.471 # https://www.carinf.com/en/5990423541.html
+        m = 1225.0 # https://en.wikipedia.org/wiki/BMW_5_Series_(E28)#Suspension (estimated)
+        f_roll = 0.02
+        c_w_a = 0.802  # 2.01 meters squared * 0.4 drag coeff
+        c_z_a_f = 0.0  # assume no aero
+        c_z_a_r = 0.0  # assume no aero
+        g = 9.81
+        rho_air = 0.84  # at 1 mile high
+        drs_factor = 0.0
+    [veh_pars_.engine]
+        topology = "RWD"
+        pow_e_motor = 130e3  # 200 hp (149kw) measured at wheels (maximum) derated some b/c we don't get max power the whole time
+        eta_e_motor = 1 # measured torque + horse power at wheels so all efficiencies are accounted for
+        eta_e_motor_re = 1 # measured torque + horse power at wheels so all efficiencies are accounted for
+        torque_e_motor_max = 240.0 # ~200 ft*lb's (270 Nm) measured at the wheel (maximum) derated some b/c we don't get max torque the whole time
+    [veh_pars_.gearbox]
+        i_trans = [0.0701, 0.1219, 0.1915, 0.2681, 0.3309]  # getrag 265 + 3.73lsd (aftermarket) https://people.physics.anu.edu.au/~amh110/gearbox_ratios_compared.htm
+        n_shift = [5500.0, 5500.0, 5500.0, 5500.0, 5500.0] # type of transmission: https://en.wikipedia.org/wiki/BMW_5_Series_(E28)#Drivetrain
+        e_i = [1.04, 1.04, 1.04, 1.04, 1.04]
+        eta_g = 1 # measured torque + horse power at wheels so all efficiencies are accounted for
+    [veh_pars_.tires]
+        tire_model_exp = 2.0
+        [veh_pars_.tires.f]
+            circ_ref = 1.974 # http://www.scrappycrow.com/e28wheelstires/e28wheelstires.html
+            fz_0 = 3905.0  # weight of car * 0.65 / 2 assume nominal tire load is weight on tires when still
+            mux = 1.02 # 200 tread wear tire + equation here: https://en.wikipedia.org/wiki/Uniform_Tire_Quality_Grading
+            muy = 1.02 # 200 tread wear tire + equation here: https://en.wikipedia.org/wiki/Uniform_Tire_Quality_Grading
+            dmux_dfz = -2.5e-5
+            dmuy_dfz = -2.5e-5
+        [veh_pars_.tires.r]
+            circ_ref = 1.974 # http://www.scrappycrow.com/e28wheelstires/e28wheelstires.html
+            fz_0 = 2103.0  # # weight of car * 0.35 / 2 assume nominal tire load is weight on tires when still
+            mux = 1.02 # 200 tread wear tire + equation here: https://en.wikipedia.org/wiki/Uniform_Tire_Quality_Grading
+            muy = 1.02 # 200 tread wear tire + equation here: https://en.wikipedia.org/wiki/Uniform_Tire_Quality_Grading
+            dmux_dfz = -2.0e-5
+            dmuy_dfz = -2.0e-5
