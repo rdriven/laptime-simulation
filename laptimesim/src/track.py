@@ -70,14 +70,14 @@ class Track(object):
 
             # make sure that the elevation and track profile are the same size 
             # so the lap calculations can be completed.
-            if len(self.elevation_profile) != self.raceline.shape[0]:
+            if len(self.elevation_profile) != len(self.raceline):
                 raise(Exception("Raceline and elevation profile must be the same size!" + 
-                        "Raceline: {}, elevation: {}".format(self.raceline.shape[0], self.elevation_profile.shape[0])))
+                        "Raceline: {}, elevation: {}".format(len(self.raceline), len(self.elevation_profile))))
         else:
-            self.elevation_profile = np.ones(self.raceline.shape[0])
+            self.elevation_profile = np.ones(len(self.raceline))
 
         # set friction values artificially as long as no real friction values available and limit them to a valid range
-        self.mu = np.ones(self.raceline.shape[0]) * self.pars_track["mu_mean"] * self.pars_track["mu_weather"]
+        self.mu = np.ones(len(self.raceline)) * self.pars_track["mu_mean"] * self.pars_track["mu_weather"]
 
         if np.any(self.mu < 0.5) or np.any(self.mu > 1.3):
             print("WARNING: Friction values seem invalid, friction values are limited to 0.5 <= mu <= 1.3!")
