@@ -37,7 +37,8 @@ def main(track_opts: dict,
          sa_opts: dict,
          debug_opts: dict,
          car_config: dict,
-         track_pars: dict,) -> laptimesim.src.lap.Lap:
+         track_pars: dict,
+         car_name: str) -> laptimesim.src.lap.Lap:
 
     # ------------------------------------------------------------------------------------------------------------------
     # CHECK PYTHON DEPENDENCIES ----------------------------------------------------------------------------------------
@@ -81,12 +82,14 @@ def main(track_opts: dict,
     resultsfile = os.path.join(repo_path, "laptimesim", "output", "results-{}.csv".format(date))
     datastore = DataStore(results_file_name=resultsfile,
                             track_pars=track_pars,
-                            car_name='testing')
+                            car_name=car_name)
 
     datastore.parse_car_config(car_config)
 
     datastore.generate_unique_sa_combinations()
 
+    # generate car parameters used for debug lap plots. This set of
+    # car parameters is used when the simulation does not do sensitivity analysis 
     first_iter_veh_pars = datastore.single_iteration_data[0].race_car_model.get_car_parameters_for_laptimesim()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -213,6 +216,11 @@ def main(track_opts: dict,
 
 
             # simulate lap and save lap time
+            # I made sure there was no other initialization needed, 
+            # we know this violates the object oriented world. 
+            # we know this isn't the best practiced but we 
+            # double checked that this was ok and there 
+            # wasn't any other initialization required or dependencies
             lap.simulate_lap()
 
             total_pit_time = race_car_object.general_parameters.pit_time + track_pars[PIT_DRIVE_THROUGH_PENALTY_TIME]
@@ -302,4 +310,5 @@ if __name__ == '__main__':
          sa_opts=sa_opts_,
          debug_opts=debug_opts_,
          car_config=car_config,
-         track_pars=track_pars_)
+         track_pars=track_pars_,
+         car_name=car_name)

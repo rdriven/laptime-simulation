@@ -1,5 +1,6 @@
 # classes to store the relationship of race car properties
 from definitions import *
+from copy import deepcopy
 
 class generalParameters():
     """Class for holding general parameters. These variables are a mirror
@@ -51,7 +52,7 @@ class generalParameters():
         parameters["rho_air"] = self.rho_air
         parameters["drs_factor"] = self.drs_factor
 
-        return parameters
+        return deepcopy(parameters)
 
     def return_dict_for_output_csv(self):
         """Return dictionary of parameters in the object.
@@ -83,7 +84,7 @@ class generalParameters():
         parameters[FRONTAL_AREA_TAG] = self.frontal_area
         parameters[NET_CHASSIS_MASS_TAG] = self.net_chassis_mass
 
-        return parameters
+        return deepcopy(parameters)
 
 class batteryParameters():
     """Class for holding battery parameters. These variables are a mirror
@@ -109,7 +110,7 @@ class batteryParameters():
         parameters[BATTERY_POWER_OUTPUT_FACT0R_TAG] = self.power_output_factor
         parameters[BATTERY_MASS_TAG] = self.mass
         
-        return parameters
+        return deepcopy(parameters)
 class engineParameters():
     """Class for holding engine parameters. These variables are a mirror
     of what is in the config file and some additional params that are 
@@ -134,22 +135,22 @@ class engineParameters():
         parameters["eta_e_motor_re"] = self.eta_e_motor_re
         parameters["torque_e_motor_max"] = self.motor_max_torque
 
-        return parameters
+        return deepcopy(parameters)
 
     def return_dict_for_output_csv(self):
         """Return dictionary of parameters in the object.
         variable naming for output to csv."""
         parameters = {}
         parameters[TOPOLOGY_TAG] = self.topology
-        parameters[POW_E_MOTOR_TAG] = self.motor_max_power
+        parameters[MOTOR_MAX_POWER_TAG] = self.motor_max_power
         parameters[MOTOR_EFFICICENCY_TAG] = self.eta_e_motor
         parameters[MOTOR_EFFICICENCY_REGEN_TAG] = self.eta_e_motor_re
-        parameters[TORQUE_E_MOTOR_MAX_TAG] = self.motor_max_torque
+        parameters[MOTOR_MAX_TORQUE_TAG] = self.motor_max_torque
         parameters[MOTOR_CONSTANT_TAG] = self.motor_constant
         parameters[MOTOR_TORQUE_DENSITY_TAG] = self.motor_torque_density
         parameters[MOTOR_MASS_TAG] = self.motor_mass
 
-        return parameters
+        return deepcopy(parameters)
 
 class gearboxParameters():
     """Class for holding gearbox parameters. These variables are a mirror
@@ -170,7 +171,7 @@ class gearboxParameters():
         parameters["e_i"] = self.e_i
         parameters["eta_g"] = self.eta_g
 
-        return parameters
+        return deepcopy(parameters)
 
     def return_dict_for_output_csv(self):
         """Return dictionary of parameters in the object.
@@ -181,7 +182,7 @@ class gearboxParameters():
         parameters[GEARBOX_TORSIONAL_MASS_FACTOR_TAG] = self.e_i
         parameters[GEARBOX_EFFICIENCY] = self.eta_g
 
-        return parameters
+        return deepcopy(parameters)
 class tireParameters():
     """Class for holding all tire parameters.
     These variables are a mirror
@@ -199,7 +200,7 @@ class tireParameters():
         parameters["r"] = self.rear_tires.return_dict_for_laptimesim()
         parameters["tire_model_exp"] = self.tire_model_exp
 
-        return parameters
+        return deepcopy(parameters)
 
     def return_dict_for_output_csv(self):
         """Return dictionary of parameters in the object.
@@ -222,7 +223,7 @@ class tireParameters():
         parameters[FRONT_TIRE_DMUY_DFZ_TAG] = front_tires["dmuy_dfz"]
         parameters[TIRE_MODEL_EXPONENT_TAG] = self.tire_model_exp
 
-        return parameters
+        return deepcopy(parameters)
 
 class tireParametersSingleAxle():
     """Class for holding tire parameters for a single axle.
@@ -237,7 +238,7 @@ class tireParametersSingleAxle():
         self.dmuy_dfz = -1
 
     def return_dict_for_laptimesim(self):
-        """Return parameters in the object in dictionary format with keys
+        """return deepcopy(parameters) in the object in dictionary format with keys
         matching the laptimesim config names."""
         parameters = {}
         parameters["circ_ref"] = self.circ_ref
@@ -247,7 +248,7 @@ class tireParametersSingleAxle():
         parameters["dmux_dfz"] = self.dmux_dfz
         parameters["dmuy_dfz"] = self.dmuy_dfz
 
-        return parameters
+        return deepcopy(parameters)
 
 class RaceCarModel():
     """Class that captures the relationship
@@ -331,8 +332,6 @@ class RaceCarModel():
             self.engine_parameters.motor_max_torque /
             self.engine_parameters.motor_torque_density
         )
-        self.engine_parameters.motor_max_power = self._calculate_max_motor_power()
-
         self.engine_parameters.motor_max_power = self._calculate_max_motor_power()
 
         # Chassis
@@ -470,10 +469,8 @@ class RaceCarModel():
         
         """
 
-        if not self._inputs_set or \
-           not self._relationships_set or \
-           not self._outputs_set:
-            raise(Exception("Must set inputs, relationships, and calculate outputs before getting these values"))
+        if not self._outputs_set:
+            raise(Exception("Must calculate outputs before getting these values"))
 
         output = {}
         general_params = self.general_parameters.return_dict_for_output_csv()
@@ -491,6 +488,10 @@ class RaceCarModel():
         tire_params = self.tire_parameters.return_dict_for_output_csv()
         for key in tire_params:
             output[key] = tire_params[key]
+        
+        battery_params = self.battery_parameters.return_dict_for_output_csv()
+        for key in battery_params:
+            output[key] = battery_params[key]
         
         return output
     
@@ -576,7 +577,8 @@ class RaceCarModel():
         self.battery_parameters.energy_density = input_vars["battery.energy_density"]
         self.battery_parameters.change_constant = input_vars["battery.change_constant"]
         self.battery_parameters.mass_pit_factor = input_vars["battery.mass_pit_factor"]
-
+        self.battery_parameters.power_output_factor = input_vars["battery.power_output_factor"]
+        
         self.engine_parameters.topology = input_vars["engine.topology"]
         self.engine_parameters.eta_e_motor = input_vars["engine.eta_e_motor"]
         self.engine_parameters.eta_e_motor_re = input_vars["engine.eta_e_motor_re"]

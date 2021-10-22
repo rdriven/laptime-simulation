@@ -1,9 +1,5 @@
 # datastore for storing and outputting data, intended to be compatible with multiple threads
-from typing import IO
-
-from numpy.core.fromnumeric import var
-from race_sim import RaceSim
-from datetime import datetime
+import time
 import threading
 import csv
 import numpy as np
@@ -61,7 +57,7 @@ class SingleIterationData():
 
         self._iteration_complete = True
 
-        race_car_properties = self.race_car_model.get_vehicle_properties()
+        race_car_properties = self.race_car_model.get_vehicle_properties_for_csv_output()
 
         for key in race_car_properties:
             self._results_list[key] = race_car_properties[key]
@@ -150,6 +146,8 @@ class DataStore():
         # concatenated keys separated by a period.
         # all keys are assumed to be the form: "section.parameter"
         # ex: general.lf or gearbox.n_shift
+        start_time = time.time()
+        print("starting parsing car config...")
 
         flattened_car_config = pd.json_normalize(car_config, sep='.')
         # the return object is pandas.core.frame.DataFrame
@@ -179,6 +177,7 @@ class DataStore():
                 # in generate_unique_sa_combinations
                 flattened_car_config[key][2] = int(flattened_car_config[key][2])
                 self.input_data_ranges[key] = flattened_car_config[key]
+        print("parsing complete, took: {} seconds".format(time.time() - start_time))
 
     def generate_unique_sa_combinations(self):
         """ Function that generates all unique combinations of 
@@ -207,6 +206,9 @@ class DataStore():
         
         # 3. Re associate each resulting piece of data from 2 to a vairable name so 
         # the data can be explicitly added to the single iteration result class
+
+        start_time = time.time()
+        print("starting generating unique combinations...")
 
         # 1
         sa_opts_explicit_values = []
@@ -270,7 +272,7 @@ class DataStore():
                                                  )
             self.single_iteration_data[i] = iteration_data
             self._total_iterations = i + 1 # enumerate is 0 based
-
+        print("combiations complete, took: {} seconds".format(time.time() - start_time))
 
     def set_single_iteration_results(
         self, iteration, lap_time, lap_energy, total_laps,
