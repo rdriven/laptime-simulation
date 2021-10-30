@@ -57,13 +57,14 @@ class Track(object):
         # load raceline
         self.raceline = np.loadtxt(trackfilepath, comments='#', delimiter=',')
 
-        # load elevation profile
+        # load relative elevation profile by subtracting off the track start elevation 
         if self.pars_track["use_elevation"]:
 
             self.elevation_profile = []
+            track_start_elevation = self.raceline[0][2]
             raceline_tmp = []
             for row in self.raceline:
-                self.elevation_profile.append(row[2])
+                self.elevation_profile.append(row[2]-track_start_elevation)
                 raceline_tmp.append([row[0], row[1]])
             self.raceline = raceline_tmp
 
@@ -529,7 +530,7 @@ class Track(object):
         plt.plot(self.dists_cl[:-1], self.elevation_profile)
         ax.set_title("Elevation Profile")
         ax.set_xlabel("distance along track in m")
-        ax.set_ylabel("elevation of track")
+        ax.set_ylabel("relative elevation of track in m")
         plt.grid()
     
     def plot_elevation_3d(self):
@@ -558,10 +559,10 @@ class Track(object):
 
         # plot velocity profile in 3D
         ax.plot(self.raceline[:, 0], self.raceline[:, 1], self.elevation_profile[:], color="k")
-        ax.set_zlabel("elevation in m")
+        ax.set_zlabel("relative elevation in m")
 
         cur_ind = 0
-        no_points_traj_vdc = len(self.raceline[0])
+        no_points_traj_vdc = len(self.raceline)
 
         while cur_ind < no_points_traj_vdc - 1:
             x_tmp = [self.raceline[cur_ind, 0], self.raceline[cur_ind, 0]]

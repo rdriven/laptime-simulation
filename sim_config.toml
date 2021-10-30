@@ -11,9 +11,9 @@
 # track options ----------------------------------------------------------------------------------------------------
 # trackname:            track name of desired race track (file must be available in the input folder)
 #                       eLemons values:
-#                       trackname = "HighPlainsFullTrack"
+#                       trackname = "HighPlains"
 #                       trackname = "Gingerman"
-#                       trackname = "CarolinaMotorsportsPark"
+#                       trackname = "Carolina"
 #                       trackname = "Sonoma"
 # flip_track:           switch to flip track direction if required
 # mu_weather:           [-] factor to consider wet track, e.g. by mu_weather = 0.6
@@ -22,9 +22,10 @@
 # use_drs1:             DRS zone 1 switch
 # use_drs2:             DRS zone 2 switch
 # use_pit:              activate pit stop (requires _pit track file!)
+# use_elevation:        consider elevation of track in caclulations of energy
 
 [track_opts_]
-    trackname = "HighPlainsFullTrack"
+    trackname = "HighPlains"
     flip_track = false
     mu_weather = 1.0
     interp_stepsize_des = 5.0
@@ -32,7 +33,7 @@
     use_drs1 = false
     use_drs2 = false
     use_pit = false
-    use_elevation = false
+    use_elevation = true 
 
 # solver options ---------------------------------------------------------------------------------------------------
 # limit_braking_weak_side:  can be None, 'FA', 'RA', 'all' -> set if brake force potential should be determined

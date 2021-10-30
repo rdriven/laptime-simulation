@@ -16,7 +16,7 @@
 #                             this is NOT the time to change the battery, that is defined in the car definition file
 
 
-[CarolinaMotorsportsPark]
+[Carolina]
     s12 = 1000.0
     s23 = 3000.0
     mu_mean = 1.0
