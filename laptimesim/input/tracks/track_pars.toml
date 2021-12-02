@@ -58,7 +58,7 @@
     pit_in = 0.0
     pit_out = 0.0
     gwc_times = [420, 420]
-    winning_laps = 200
+    winning_laps = 340
     pit_penalty = 1
 
 [Sonoma]
