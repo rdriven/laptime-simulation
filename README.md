@@ -33,7 +33,7 @@ Steps to make the simulation go:
          4. Maximum motor torque `torque_e_motor_max`
          5. Maximum motor power `pow_e_motor_max`
       2. Read up on the other car variables, over time elemons people will insert ourselves more and more into this section.
-3. Run `main_laptimesim.toml` this will output the data into a csv, no graphing will happen
+3. Run `main_laptimesim.py` this will output the data into a csv, no graphing will happen
    1. If you're not using the car `FE_Berlin.toml` pass it in as an argument
    2. If you're not using the sim config `sim_config.toml` pass it in as an argument
    3. TODO: If you're not using the track config `track_config.toml` pass it in as an argument
@@ -115,10 +115,26 @@ Heilmeier, Wischnewski, Hermansdorfer, Betz, Lienkamp, Lohmann\
 Minimum Curvature Trajectory Planning and Control for an Autonomous Racecar\
 DOI: 10.1080/00423114.2019.1631455
 
-### Extracting the centerline of a race track from OpenStreetMap
 
+## Create and simulate with a new track 
+Modified and extended notes on how to create a compatible track map file that includes x,y, and elevation values for the main_laptimesim.py
+
+General flow
+	A) Source a track with the Overpass_turbo website that is a lat/long based 
+     But note that it is deficient in three ways:
+		- it's lat/long data, but includes no elevation
+		- it's not granular enough nor in the centerline of the track 
+		- it's not in the x,y format of the centerline necessary so main_laptimesim.py can use it for lap sim calculations 
+
+	B) Use main_opt_raceline.py convert to a finer (more) granular track points in x,y offset coordinate pair wrt to start of track
+	C) Use manual editting and online tools to change finer format back to lat/long, 
+	D) Attach elevation to each point, put in .geojson file format, then convert to raceline .csv
+	   for processing in main_laptimesim.py
+
+
+### A) Source a track with Overpass_turbo that is a lat/long based
 * `Step 1`: Open [Overpass Turbo](https://overpass-turbo.eu/) This is a tool to extract map informations from OpenStreetMap.
-* `Step 2`: Navigate to the desired race track, e.g. the Red Bull Ring in Austria.
+* `Step 2`: Navigate to the desired race track, e.g. the Red Bull Ring in Austria, ensuring that the whole track is shown on your screen
 * `Step 3`: Paste the following search into the text field and execute the search to highlight everything which is tagged
 as a raceway.
 <!-- language: lang-none -->
@@ -131,76 +147,119 @@ as a raceway.
     out body;
     >;
     out skel qt;
-* `Step 4`: Click "export" and save it as a GeoJSON. Be aware that the export might include a lot of unnecessary points
-which must be excluded either in a separate step or during the import. 
-* `Step 5`: Note: (RMH) Before running main_opt_raceline.py , the exported geojson file should be put in the project directory: laptime-simulation/opt_raceline/input/centerlines
+* `Step 4`: Click "run" to execute the script, then  click "export" and save it as a GeoJSON. 
 
-* `Step 6`:  Edit/add a "track_pars" structure for the track of interest structure 
+* `Step 5`: Manually edit out unnecessary/intersecting track sections. Because the export might 
+	include a lot of unnecessary points, sections, features, etc of track which should be excluded by manually editting
+	the .geojson file. 
+
+	You'll want to end up with one unique continuous loop around the track and not include things pit lanes in a race course 
+	centerline calculation. That said, don't worry about removing whole Track roadway features (i.e. geojson "type: "Feature") 
+	like pit lanes because you'll be able remove them (deselect) during Step 7 when  you run main_opt_raceline.py. 
+
+	But, for instance, you might need to remove a portion of the one section of track by removing some 
+	"coordinates" of a Feature. For example High Plains Raceway,  a portion of the Praire Corkscrew inner track path "Feature" 
+	is also a part of the outer track loop and should remain in the file to complete the outer loop of the track, while another 
+	portion of Praire Corkscrew should be manually removed because it allows 2 divergent paths around the track and will confuse
+	the centerline algo.
+
+### B) Use main_opt_raceline.py convert to a finer (more) granular track points in x,y offset coordinate pair wrt to start of track
+* `Step 5`: Move cleaned up .geojson file to laptime-simulation/opt_raceline/input/centerlines
+	Note: (RMH) Before running main_opt_raceline.py, the exported (and modified) geojson file should be put 
+	in the project directory: laptime-simulation/opt_raceline/input/centerlines
+
+* `Step 6`:  Edit/add a "track_pars" structure for the track of interest structure into main_opt_raceline.py. Make an intelligent 
+	guess at the track length and width - looking at other online sources for an idea of these values.
+
 * `Step 7`:  Run "python3 main_opt_raceline.py"
+	The output of this step is a file - opt_raceline/output/racelines/"trackname".csv 
+	e.g.  opt_raceline/output/racelines/HighPlains.csv 
 
-Note: (RMH) Per the above warning, I got errors when running main_opt_raceline.py 
-	the first time with a raw geojson file exported from OpenStreets like:
-		Traceback (most recent call last):
-		  File "main_opt_raceline.py", line 478, in <module>
-		    main(track_pars=track_pars_,
-		  File "main_opt_raceline.py", line 111, in main
-		    refline_imp = opt_raceline.src.import_geojson_gps_centerline.\
-		  File "/home/rick/eLemons/old-rdriven-laptime_simulation/laptime-simulation/opt_raceline/src/import_geojson_gps_centerline.py", line 54, in import_geojson_gps_centerline
-		    tmp_xy[i] = utm.from_latlon(tmp_gps[i][1], tmp_gps[i][0])[:2]
-		  File "/home/rick/.local/lib/python3.8/site-packages/utm/conversion.py", line 190, in from_latlon
-		    raise OutOfRangeError('latitude out of range (must be between 80 deg S and 84 deg N)')
-		utm.error.OutOfRangeError: latitude out of range (must be between 80 deg S and 84 deg N)
+	Note: (RMH) Per the above warning, I got errors when running main_opt_raceline.py 
+		the first time with a raw geojson file exported from overpass-turbo.eu like:
+			Traceback (most recent call last):
+			  File "main_opt_raceline.py", line 478, in <module>
+			    main(track_pars=track_pars_,
+			  File "main_opt_raceline.py", line 111, in main
+			    refline_imp = opt_raceline.src.import_geojson_gps_centerline.\
+			  File "/home/rick/eLemons/old-rdriven-laptime_simulation/laptime-simulation/opt_raceline/src/import_geojson_gps_centerline.py", line 54, in import_geojson_gps_centerline
+			    tmp_xy[i] = utm.from_latlon(tmp_gps[i][1], tmp_gps[i][0])[:2]
+			  File "/home/rick/.local/lib/python3.8/site-packages/utm/conversion.py", line 190, in from_latlon
+			    raise OutOfRangeError('latitude out of range (must be between 80 deg S and 84 deg N)')
+			utm.error.OutOfRangeError: latitude out of range (must be between 80 deg S and 84 deg N)
 
-	To eliminate the errors you can hand edit the geojson file to remove the track 
-	description Feature and possibly a couple "non track" sections also included in it. 
-	For instance in Gingerman.geojson the track description 
+		To eliminate the errors you can hand edit the geojson file to remove the track 
+		description Feature and possibly a couple "non track" sections also included in it. 
+		For instance in Gingerman.geojson the track description 
 
-Note:  Insert the actual track length and width (and put in the main_opt_raceline data structure) 
-	for that track, by visiting the desired track's website and look it up, figure it out, etc. 
-	Or look at the length of past races from our eLemons_vehicle_and_track_data Gdrive sheet. 
-	You'll have to be clever because each track & race chooses some sections of track which 
-	changes the length. 
+	Note:  Insert the actual track length and width (and put in the main_opt_raceline data structure) 
+		for that track, by visiting the desired track's website and look it up, figure it out, etc. 
+		Or look at the length of past races from our eLemons_vehicle_and_track_data Gdrive sheet. 
+		You'll have to be clever because each track & race chooses some sections of track which 
+		changes the length. 
 
-Note: When executing main_opt_raceline for a track .geojson file that includes pit lanes and additional
-	track sections not associated with the track of interest, as one of the first steps the 
-	program lets you deselect unwanted sections of the roadways by clicking their colored lines 
-	in the legend.  
-	** You'll need to delselect extra sections of track**, or else the curve algorithm
-	will try to fit a curve to the all the sections- yikes! 
+	Note: When executing main_opt_raceline for a track .geojson file that includes pit lanes and additional
+		track sections not associated with the track of interest, as one of the first steps the 
+		program lets you deselect unwanted sections of the roadways by clicking their colored lines 
+		in the legend.  
+		** You'll need to delselect extra sections of track**, or else the curve algorithm
+		will try to fit a curve to the all the sections- yikes! 
 
-Note: If you have to deselect sections, make sure you set the # in Start ID control in the text box in 
-	upper right corner of the GUI to a reasonable (existing) track section number. The best choice 
-	is section with the (straight) start/finish line. If you pick a curved section the 
-	optimizer has a problem with starting velocity, it seems, and the code will bomb.
+	Note: If you have to deselect sections, make sure you set the # in Start ID control in the text box in 
+		upper right corner of the GUI to a reasonable (existing) track section number. The best choice 
+		is section with the (straight) start/finish line. If you pick a curved section the 
+		optimizer has a problem with starting velocity, it seems, and the code will bomb.
 
-Note: Sometimes the Section 0 starts in a corner which makes the main_laptimesim have heartburn 
-	and throw errors when you start it. You'll need to shuffle the .geojson coordinates before 
-	running the main_opt_raceline step so that the start of the simulation is more or less on 
-	a straightaway.
+	Note: Sometimes the Section 0 starts in a corner which makes the main_laptimesim have heartburn 
+		and throw errors when you start it. You'll need to shuffle the .geojson coordinates before 
+		running the main_opt_raceline step so that the start of the simulation is more or less on 
+		a straightaway.
 
-Note: Once pared down, retire the image by clicking X in the right hand corner
-	and to allow main_opt_raceline to continue its calculations.
+	Note: Once pared down, retire the image by clicking X in the right hand corner
+		and to allow main_opt_raceline to continue its calculations.
 	
-Note: The output of this step is a centerlines\"trackname".csv file
-	Copy this file to /laptimesim/input/tracks/racelines
-	e.g. cp opt_raceline/output/racelines/Gingerman.csv laptimesim/input/tracks/racelines/.
+### C) Use manual editting and online tools to change this file with greater number of track points format back to lat/long, 
+* `Step 8`: Open this .csv file with OpenLibre or Excel and convert new imported Step 7 x,y values to lat/long, 
+	(there should be an example this called xy_to_latlong.ods),
+	 NOTE: Up date the Track Origin Lat/Long to this track
+	 Save these newly calculated lat/long values to "latlong from xy_to_latlong" sheet to a .csv (e.g. output file Step8_latlong.csv)
+	 and don't include "Lat" and "Long" column headings
+
+### D) Attach elevation to each point, put in .geojson file format, then convert to raceline .csv
+* `Step 9`: Convert the Step8_latlong.csv into a GPX file format using https://anyconv.com/csv-to-gpx-converter/
+	Download the output file and rename Step9_latlong.gpx
+
+* `Step 10`: Add elevation to the Step9_latlong.gpx using https://www.gpsvisualizer.com/elevation and "Convert & add elevation" 
+	feature button
+	Set output as .txt file and download the GPS Visualizer output to a file and rename Step10_latlongelevation.txt
+* `Step 11`: Make and x,y,elevation file by 
+	- copying Step10_latlongelevation.txt to Step11_xyelevation.csv 
+	- deleting the 'type' and 'name' columms
+	- replacing the contents of latitude and longitude values with x,y values from original (Step 7) HighPlains.csv file
+	- save the file as Step11_xyelevation.csv
+* `Step 12`: Copy this output .csv file to run as an main_laptimesim.py input file 
+	e.g. cp opt_raceline/output/racelines/Step11_xyelevation.csv laptimesim/input/tracks/racelines/HighPlains.csv
 
 
-## Running the lap time simulation
+### Now run the lap time simulation with a new track
 
 If the requirements are installed on the system, follow these steps:
 
-* `Step 1`: (optional) Adjust a given or create a new vehicle parameter file (.toml) for the simulation. The files are
+* `Step 13`: (optional) Adjust a given or create a new vehicle parameter file (.toml) for the simulation. The files are
 located in `/laptimesim/input/vehicles`.
+
 * (optional) Set the iteration parameters in the vehicle parameter file.
-* `Step 2`: (optional) Adjust a given or create a new track. Every track consists of some parameters (e.g. length)
-  as well as a raceline. Therefore, you have to make sure the parameters are given in
-  `/laptimesim/input/tracks/track_pars.ini` and the raceline is available in `/laptimesim/input/tracks/racelines`.
+
+* `Step 14`: (optional) Adjust inputs to given track or create a new track. Every track consists of some parameters (e.g. length)
+  as well as a raceline. Therefore, you have to make sure 
+  - the .csv raceline file is available in `/laptimesim/input/tracks/racelines`.
+  - the parameters are given in `/laptimesim/input/tracks/track_pars.ini` 
+  - update track data for `laptimesim/input/tracks/track_pars.toml` 
+  - update `sim_config.toml` includes the new track name.
   Additionally, you can place a .png track map in `/laptimesim/input/tracks/maps`.
 
-* `Step 4`: Run `main_laptimesim.py`.
-
-![Lap time simulation result for the Monza racetrack](laptimesim/laptimesim_monza.png)
+* `Step 15`: Run `main_laptimesim.py`.
+	e.g. $ python3 main_laptimesim.py
 
 ### Detailed description of the lap time simulation
 

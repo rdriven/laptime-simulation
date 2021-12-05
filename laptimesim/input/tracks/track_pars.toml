@@ -16,7 +16,7 @@
 #                             this is NOT the time to change the battery, that is defined in the car definition file
 
 
-[CarolinaMotorsportsPark]
+[Carolina]
     s12 = 1000.0
     s23 = 3000.0
     mu_mean = 1.0
@@ -44,6 +44,21 @@
     pit_out = 0.0
     gwc_times = [7, 8]
     winning_laps = 9001
+    pit_penalty = 1
+
+[HighPlains]
+    s12 = 2000.0
+    s23 = 3000.0
+    mu_mean = 1.0
+    drs1_act = 0.0
+    drs1_deact = 0.0
+    drs2_act = 0.0
+    drs2_deact = 0.0
+    pitspeed = 22.222
+    pit_in = 0.0
+    pit_out = 0.0
+    gwc_times = [420, 420]
+    winning_laps = 200
     pit_penalty = 1
 
 [HighPlainsFullTrack]
