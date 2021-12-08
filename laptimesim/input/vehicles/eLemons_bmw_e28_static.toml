@@ -1,8 +1,6 @@
 # This file is meant to describle the BMW e28 (528e) in a .toml format. 
 
-car_model_type = "dynamic"
 powertrain_type = "electric"
-
 
 [general]
     lf = 0.918 # weight distribution: 65/35 f/r https://www.mye28.com/viewtopic.php?t=154907
@@ -11,7 +9,7 @@ powertrain_type = "electric"
     sf = 1.431 # https://www.carinf.com/en/5990423541.html
     sr = 1.471 # https://www.carinf.com/en/5990423541.html
     # m = 3000.0  # determined by other variables
-    # f_roll = 0.02 # determined by mass and rolling resistance factor
+    f_roll = 0.02
     # c_w_a = 0.802  # 2.01 meters squared * 0.4 drag coeff
     c_z_a_f = 0.0
     c_z_a_r = 0.0
@@ -19,29 +17,25 @@ powertrain_type = "electric"
     rho_air = 0.84 # at 1 mile high
     drs_factor = 0.0
     coefficient_of_drag = 0.38  # unitless
+    frontal_area = 2 # meters squared
     vehicle_curb_mass = 1225  # kg # https://en.wikipedia.org/wiki/BMW_5_Series_(E28)#Suspension (estimated)
     mass_reduction = 180  # kg
-    chassis_motor_mass_factor = 0.05 # kg chassis per kg motor
-    chassis_battery_mass_factor = 0.05 # kg chassis per kg battery
-    car_density = 450 # kg/m^3
     max_vehicle_weight_ratio = 1.25  # determined by rules
-    rolling_resistance_mass_factor = 0.00001 #0.01 rolling resistance for 1000 kg car
 [battery]
-    size = 40  # kWh
-    energy_density = 0.5  # kWh/kg
+    size = [10.0, 100.0, 10.0]  # kWh # kWh
+    energy_density = 0.15  # kWh/kg
     change_constant = 3  # minutes
     mass_pit_factor = 0.03  # minutes per kg of battery of pit time
-    power_output_factor = 1000 # Watts output per kWh battery capacity
 [engine]
     topology = "RWD"
-    # pow_e_motor = 100e3  # determined by motor constant and torque
+    motor_max_power = 130e3  # determined by motor constant and torque
     # 130e3  # 200 hp (149kw) measured at wheels (maximum) derated some b/c we don't get max power the whole time
     eta_e_motor = 1.0
     eta_e_motor_re = 1.0
     # torque_e_motor_max = 100.0  # new variable name
-    motor_max_torque = 240.0 # ~200 ft*lb's (270 Nm) measured at the wheel (maximum) derated some b/c we don't get max torque the whole time
-    motor_constant = 0.07  # Nm/sqrt(W)
-    motor_torque_density = 5 # Nm/kg
+    motor_max_torque = 275.0  # Nm
+    motor_mass = 50 # kg
+
 [gearbox]
     i_trans = [0.0701, 0.1219, 0.1915, 0.2681, 0.3309]  # getrag 265 + 3.73lsd (aftermarket) https://people.physics.anu.edu.au/~amh110/gearbox_ratios_compared.htm
     n_shift = [5500.0, 5500.0, 5500.0, 5500.0, 5500.0] # type of transmission: https://en.wikipedia.org/wiki/BMW_5_Series_(E28)#Drivetrain

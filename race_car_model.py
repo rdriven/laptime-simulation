@@ -23,11 +23,7 @@ class generalParameters():
         self.coefficient_of_drag = -1
         self.vehicle_curb_mass = -1
         self.mass_reduction = -1
-        self.chassis_motor_mass_factor = -1
-        self.chassis_battery_mass_factor = -1
-        self.car_density = -1
         self.max_vehicle_weight_ratio = -1
-        self.rolling_resistance_mass_factor = -1
         self.pit_time = -1
         self.maximum_allowable_vehicle_mass = -1
         self.frontal_area = -1
@@ -74,11 +70,7 @@ class generalParameters():
         parameters[COEFFICIENT_OF_DRAG_TAG] = self.coefficient_of_drag 
         parameters[VEHICLE_CURB_MASS] = self.vehicle_curb_mass
         parameters[MASS_REDUCTION_TAG] = self.mass_reduction
-        parameters[CHASSIS_MOTOR_MASS_FACTOR_TAG] = self.chassis_motor_mass_factor
-        parameters[CHASSIS_BATTERY_MASS_FACTOR_TAG] = self.chassis_battery_mass_factor
-        parameters[CAR_DENSITY_TAG] = self.car_density
         parameters[MAX_VEHICLE_WEIGHT_RATIO_TAG] = self.max_vehicle_weight_ratio
-        parameters[ROLLING_RESISTANCE_MASS_FACTOR_TAG] = self.rolling_resistance_mass_factor
         parameters[PIT_TIME_TAG] = self.pit_time
         parameters[MAXIMUM_ALLOWABLE_VEHICLE_MASS_TAG] = self.maximum_allowable_vehicle_mass
         parameters[FRONTAL_AREA_TAG] = self.frontal_area
@@ -95,7 +87,6 @@ class batteryParameters():
         self.energy_density = -1
         self.change_constant = -1
         self.mass_pit_factor = -1
-        self.power_output_factor = -1
         self.mass = -1
     
     def return_dict_for_output_csv(self):
@@ -107,7 +98,6 @@ class batteryParameters():
         parameters[BATTERY_ENERGY_DENSITY_TAG] = self.energy_density
         parameters[BATTERY_CHANGE_CONSTANT_TAG] = self.change_constant
         parameters[BATTERY_MASS_PIT_FACTOR_TAG] = self.mass_pit_factor
-        parameters[BATTERY_POWER_OUTPUT_FACT0R_TAG] = self.power_output_factor
         parameters[BATTERY_MASS_TAG] = self.mass
         
         return deepcopy(parameters)
@@ -120,8 +110,6 @@ class engineParameters():
         self.eta_e_motor = -1
         self.eta_e_motor_re = -1
         self.motor_max_torque = -1
-        self.motor_constant = -1
-        self.motor_torque_density = -1
         self.motor_max_power = -1
         self.motor_mass = -1
     
@@ -146,8 +134,6 @@ class engineParameters():
         parameters[MOTOR_EFFICICENCY_TAG] = self.eta_e_motor
         parameters[MOTOR_EFFICICENCY_REGEN_TAG] = self.eta_e_motor_re
         parameters[MOTOR_MAX_TORQUE_TAG] = self.motor_max_torque
-        parameters[MOTOR_CONSTANT_TAG] = self.motor_constant
-        parameters[MOTOR_TORQUE_DENSITY_TAG] = self.motor_torque_density
         parameters[MOTOR_MASS_TAG] = self.motor_mass
 
         return deepcopy(parameters)
@@ -302,14 +288,11 @@ class RaceCarModel():
         battery_mass (float): mass of battery in kg
         pit_time (float): pit time in minutes
         motor_mass (float): weight of motor in kg
-        motor_max_power (float): maximum power output of motor in watts
         net_chassis_mass (float): weight of the chassis with all non-electric, non-racing stuff removed in kg
         total_vehicle_mass (float): total weight of the electric reaccar in kg
         maximum_allowable_vehicle_mass (float): maximum allowable weight of car based on rules in kg
-        frontal_area (float): frontal area of car in meters squared
         is_allowable_weight (bool): bool represenging if the total vehicle weight is allowable
         c_w_a (float): variable representing the frontal area multiplied by c_d for the car
-        rolling_resistance (float): rolling resistance for the car
 
         """
 
@@ -327,33 +310,15 @@ class RaceCarModel():
             self.battery_parameters.change_constant
         )
 
-        # Motor
-        self.engine_parameters.motor_mass = (
-            self.engine_parameters.motor_max_torque /
-            self.engine_parameters.motor_torque_density
-        )
-        self.engine_parameters.motor_max_power = self._calculate_max_motor_power()
 
         # Chassis
         self.general_parameters.net_chassis_mass = (
             self.general_parameters.vehicle_curb_mass - 
             self.general_parameters.mass_reduction
         )
-        
-        chassis_battery_mass = (
-            self.battery_parameters.mass *
-            self.general_parameters.chassis_battery_mass_factor
-        )
-        
-        chassis_motor_mass = (
-            self.engine_parameters.motor_mass *
-            self.general_parameters.chassis_motor_mass_factor
-        )
 
         self.general_parameters.m = (
             self.general_parameters.net_chassis_mass +
-            chassis_battery_mass +
-            chassis_motor_mass +
             self.engine_parameters.motor_mass +
             self.battery_parameters.mass
         )
@@ -362,7 +327,6 @@ class RaceCarModel():
             self.general_parameters.vehicle_curb_mass *
             self.general_parameters.max_vehicle_weight_ratio
         )
-        self.general_parameters.frontal_area = self._frontal_area_cube_calculation()
 
         self._is_allowable_weight = (
             self.general_parameters.m <
@@ -380,76 +344,6 @@ class RaceCarModel():
             self.general_parameters.frontal_area *
             self.general_parameters.coefficient_of_drag
         )
-
-        self.general_parameters.f_roll = (
-            self.general_parameters.m *
-            self.general_parameters.rolling_resistance_mass_factor
-        )
-
-    def _calculate_max_motor_power(self):
-        """Calculate the maximum motor power
-        given a known motor constant and maximum motor torque.
-        
-        Reference: https://en.wikipedia.org/wiki/Motor_constants
-
-        motor_constant = max_torque/sqrt(max_power)
-
-        rearranging for max_power:
-        max_power = (max_torque/motor_constant) ** 2
-
-        Motor constant in N*m/sqrt(W)
-        maximum torque in N*m
-        
-        Inputs:
-            - self
-        
-        Outputs:
-            - maximum_motor_power (float): maximum output power of motor in watts
-        """
-
-        maximum_motor_power = (
-            self.engine_parameters.motor_max_torque/
-            self.engine_parameters.motor_constant
-        ) ** 2
-
-        battery_power_limit = (
-            self.battery_parameters.size *
-            self.battery_parameters.power_output_factor
-        )
-
-        maximum_motor_power = min(
-            maximum_motor_power,
-            battery_power_limit
-        )
-
-        return maximum_motor_power
-    
-    def _frontal_area_cube_calculation(self):
-        """Calculate the frontal area of the car based on the cube 
-        assumption: the front of the car varies based on the mass of the 
-        car where the car has a constant density and the car is shaped like a cube.
-
-        Inputs:
-            None
-        
-        Outputs:
-            - frontal_area (float): frontal area of the car in meters squared
-        
-        Raises:
-            Nothing
-        
-        """
-
-        total_volume = (
-            self.general_parameters.m /
-            self.general_parameters.car_density
-        )
-        
-        side_length = total_volume ** (1/3)
-
-        frontal_area = side_length ** 2
-
-        return frontal_area
 
 
     def get_vehicle_properties_for_csv_output(self):
@@ -567,24 +461,21 @@ class RaceCarModel():
         self.general_parameters.coefficient_of_drag = input_vars["general.coefficient_of_drag"]
         self.general_parameters.vehicle_curb_mass = input_vars["general.vehicle_curb_mass"]
         self.general_parameters.mass_reduction = input_vars["general.mass_reduction"]
-        self.general_parameters.chassis_motor_mass_factor = input_vars["general.chassis_motor_mass_factor"]
-        self.general_parameters.chassis_battery_mass_factor = input_vars["general.chassis_battery_mass_factor"]
-        self.general_parameters.car_density = input_vars["general.car_density"]
         self.general_parameters.max_vehicle_weight_ratio = input_vars["general.max_vehicle_weight_ratio"]
-        self.general_parameters.rolling_resistance_mass_factor = input_vars["general.rolling_resistance_mass_factor"]
+        self.general_parameters.frontal_area = input_vars["general.frontal_area"]
+        self.general_parameters.f_roll = input_vars["general.f_roll"]
 
         self.battery_parameters.size = input_vars["battery.size"]
         self.battery_parameters.energy_density = input_vars["battery.energy_density"]
         self.battery_parameters.change_constant = input_vars["battery.change_constant"]
         self.battery_parameters.mass_pit_factor = input_vars["battery.mass_pit_factor"]
-        self.battery_parameters.power_output_factor = input_vars["battery.power_output_factor"]
         
         self.engine_parameters.topology = input_vars["engine.topology"]
         self.engine_parameters.eta_e_motor = input_vars["engine.eta_e_motor"]
         self.engine_parameters.eta_e_motor_re = input_vars["engine.eta_e_motor_re"]
         self.engine_parameters.motor_max_torque = input_vars["engine.motor_max_torque"]
-        self.engine_parameters.motor_constant = input_vars["engine.motor_constant"]
-        self.engine_parameters.motor_torque_density = input_vars["engine.motor_torque_density"]
+        self.engine_parameters.motor_mass = input_vars["engine.motor_mass"]
+        self.engine_parameters.motor_max_power = input_vars["engine.motor_max_power"]
 
         self.gearbox_parameters.i_trans = input_vars["gearbox.i_trans"]
         self.gearbox_parameters.n_shift = input_vars["gearbox.n_shift"]

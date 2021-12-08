@@ -105,6 +105,7 @@
 
 [car_opts_]
     #car = "FE_Berlin"
-    car = "eLemons_honda_insight"
+    #car = "eLemons_honda_insight"
     #car = "eLemons_bmw_e28"
     #car = "eLemons_bmw_e28_gas"
+    car = "eLemons_bmw_e28_static"
