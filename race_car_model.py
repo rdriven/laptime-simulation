@@ -88,6 +88,14 @@ class batteryParameters():
         self.change_constant = -1
         self.mass_pit_factor = -1
         self.mass = -1
+        self.max_charging_power = -1
+    
+    def return_dict_for_laptimesim(self):
+        parameters = {}
+
+        parameters["max_charging_power"] = self.max_charging_power
+
+        return parameters
     
     def return_dict_for_output_csv(self):
         """Return dictionary of parameters in the object.
@@ -99,6 +107,7 @@ class batteryParameters():
         parameters[BATTERY_CHANGE_CONSTANT_TAG] = self.change_constant
         parameters[BATTERY_MASS_PIT_FACTOR_TAG] = self.mass_pit_factor
         parameters[BATTERY_MASS_TAG] = self.mass
+        parameters[BATTERY_MAX_CHARGING_POWER_TAG] = self.max_charging_power
         
         return deepcopy(parameters)
 class engineParameters():
@@ -430,6 +439,11 @@ class RaceCarModel():
                 for tire_key in veh_pars_["tires"][key].keys():
                     if veh_pars_["tires"][key][tire_key] == -1:
                         raise(Exception("Item not set before retrieving it: tires, {}, {}".format(key, tire_key)))
+        
+        veh_pars_["battery"] = self.battery_parameters.return_dict_for_laptimesim()
+        for key in veh_pars_["battery"].keys():
+            if veh_pars_["battery"][key] == -1:
+                raise(Exception("Item not set before retrieving it: engine, {}".format(key)))
 
         return veh_pars_
     
@@ -469,6 +483,7 @@ class RaceCarModel():
         self.battery_parameters.energy_density = input_vars["battery.energy_density"]
         self.battery_parameters.change_constant = input_vars["battery.change_constant"]
         self.battery_parameters.mass_pit_factor = input_vars["battery.mass_pit_factor"]
+        self.battery_parameters.max_charging_power = input_vars["battery.max_charging_power"]
         
         self.engine_parameters.topology = input_vars["engine.topology"]
         self.engine_parameters.eta_e_motor = input_vars["engine.eta_e_motor"]

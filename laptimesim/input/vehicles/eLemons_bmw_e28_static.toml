@@ -26,6 +26,7 @@ powertrain_type = "electric"
     energy_density = 0.15  # kWh/kg
     change_constant = 3  # minutes
     mass_pit_factor = 0.03  # minutes per kg of battery of pit time
+    max_charging_power = [10e3, 100e3, 10e1] # Watts
 [engine]
     topology = "RWD"
     motor_max_power = 130e3  # determined by motor constant and torque

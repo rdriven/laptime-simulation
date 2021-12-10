@@ -46,7 +46,8 @@ class CarElectric(Car):
                      pars_general=pars_veh_tmp["general"],
                      pars_engine=pars_veh_tmp["engine"],
                      pars_gearbox=pars_veh_tmp["gearbox"],
-                     pars_tires=pars_veh_tmp["tires"])
+                     pars_tires=pars_veh_tmp["tires"],
+                     pars_battery=pars_veh_tmp["battery"])
 
     # ------------------------------------------------------------------------------------------------------------------
     # GETTERS / SETTERS ------------------------------------------------------------------------------------------------

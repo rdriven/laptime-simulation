@@ -618,6 +618,7 @@ class Lap(object):
                         if regen_only:
                             max_motor_torque = self.driverobj.carobj.pars_engine["torque_e_motor_max"]
                             max_motor_power = self.driverobj.carobj.pars_engine["pow_e_motor"]
+                            max_battery_regen = self.driverobj.carobj.pars_battery["max_charging_power"]
 
                             # calculate the maximum longitudinal force based on max motor torque
                             # I divided by efficiency in the below equation because we are braking and 
@@ -632,7 +633,8 @@ class Lap(object):
                             # calculate the maximum longitudinal force based on max motor power
                             # same rational as above for dividing by gearbox efficiency instead of multiplying
                             # power = force * velocity -> force = power / velocity
-                            f_x_poss_power = (max_motor_power 
+                            max_power_input = min(max_battery_regen, max_motor_power)
+                            f_x_poss_power = (max_power_input 
                                 / self.driverobj.carobj.pars_engine["eta_e_motor_re"]
                                 / self.driverobj.carobj.pars_gearbox["eta_g"]
                                 / vel_tmp)

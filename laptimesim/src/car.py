@@ -25,6 +25,7 @@ class Car(object):
                  "__pars_engine",
                  "__pars_gearbox",
                  "__pars_tires",
+                 "__pars_battery",
                  "__f_z_calc_stat")
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -32,12 +33,13 @@ class Car(object):
     # ------------------------------------------------------------------------------------------------------------------
 
     def __init__(self, powertrain_type: str, pars_general: dict, pars_engine: dict, pars_gearbox: dict,
-                 pars_tires: dict):
+                 pars_tires: dict, pars_battery: dict):
         self.powertrain_type = powertrain_type
         self.pars_general = pars_general
         self.pars_engine = pars_engine
         self.pars_gearbox = pars_gearbox
         self.pars_tires = pars_tires
+        self.pars_battery = pars_battery
         self.calculate_static_parameters()
 
     def calculate_static_parameters(self):
@@ -105,6 +107,9 @@ class Car(object):
     def __set_f_z_calc_stat(self, x: dict) -> None: self.__f_z_calc_stat = x
     f_z_calc_stat = property(__get_f_z_calc_stat, __set_f_z_calc_stat)
 
+    def __get_pars_battery(self) -> str: return self.__pars_battery
+    def __set_pars_battery(self, x: str) -> None: self.__pars_battery = x
+    powertrain_type = property(__get_powertrain_type, __set_powertrain_type)
     # ------------------------------------------------------------------------------------------------------------------
     # METHODS (CALCULATIONS) -------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
